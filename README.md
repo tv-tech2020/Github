@@ -1,22 +1,15 @@
-# Xuper for Nuvio — credential-access scaffold
+# Xuper Nuvio — configuración de cuenta
 
-This repository has a root `manifest.json` and a single-file provider at `providers/xuper.js`, matching the standard Nuvio provider repository layout.
+Este paquete registra un proveedor JavaScript de Nuvio con ajustes configurables para usuario/correo, contraseña y una clave de cifrado opcional del portal.
 
-## Status
+## Instalar
 
-**Not functional for playback yet.** `getStreams()` intentionally returns an empty array until the authorized Xuper portal request, authentication, response decoding, and stream mapping are implemented and tested.
+Usa la URL pública del `manifest.json` de este repositorio en Ajustes → Plugins de Nuvio/Arrivo.
 
-This package assumes you may have authorized access to the original service configuration. It does **not** contain the real `magisKey`, and Kino-sealed secrets cannot be copied directly into Nuvio. Do not put credentials in a public GitHub repository.
+## Estado real
 
-## Publish/test
+**Este paquete todavía es un scaffold, no un extractor funcional.** Los campos de configuración se declaran usando `onSettings` y el manifiesto `hasSettings: true`; `getStreams` registra únicamente si hay valores configurados y devuelve `[]` deliberadamente.
 
-Upload the *contents* of this ZIP to the root of a GitHub repository, keeping these paths:
+Para reproducir contenido todavía se debe portar y probar la autenticación del portal, el cifrado/descifrado y la resolución de enlaces desde la implementación original de Kino. `magisKey` es una clave de cifrado distinta de la contraseña de cuenta; no se puede inferir de las credenciales.
 
-- `manifest.json`
-- `providers/xuper.js`
-
-Then the manifest URL format is:
-
-`https://raw.githubusercontent.com/OWNER/REPOSITORY/BRANCH/manifest.json`
-
-The manifest may load as a provider entry, but playback will return no streams until the source integration is implemented. Movies and series are declared; anime will be supported only when the source lookup can resolve it through the movie/TV parameters. Live TV is not implemented in this provider contract.
+No introduzcas credenciales reales en archivos del repositorio. Escríbelas solo en la pantalla de ajustes de la app. No publiques capturas que las muestren.

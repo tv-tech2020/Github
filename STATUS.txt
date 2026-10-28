@@ -1,3 +1,3 @@
-STRUCTURE FIXED: manifest.json exists at repository root and points to providers/xuper.js.
-FUNCTIONAL STATUS: NOT A WORKING SCRAPER. getStreams returns [] intentionally.
-No real credential is included. Do not publish secrets.
+Versión 1.1.0 — prototipo de ajustes.
+Incluye formulario Nuvio para usuario/correo, contraseña y clave de cifrado opcional.
+No obtiene streams todavía: autenticación, descifrado y extracción no están portados.
