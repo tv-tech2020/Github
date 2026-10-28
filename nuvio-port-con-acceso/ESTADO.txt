@@ -1,0 +1,3 @@
+CON ACCESO AUTORIZADO A XUPER
+
+Este archivo es una base de port, no una adaptación completa. El proveedor devuelve [] hasta que la integración de origen se implemente y pruebe.
