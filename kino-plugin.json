@@ -1,0 +1,178 @@
+{
+  "id": "xuper",
+  "name": "Xuper",
+  "version": "2.2.33",
+  "apiVersion": 8,
+  "entry": "plugin.js",
+  "icon": "icon.png",
+  "hosts": [
+    "oogoy.f30c96w8.com",
+    "osuhk.m3x8o50te.com",
+    "api.themoviedb.org",
+    "raw.githubusercontent.com"
+  ],
+  "capabilities": [
+    "search",
+    "home",
+    "browse",
+    "episodes",
+    "resolve",
+    "download",
+    "channels",
+    "migrate",
+    "scopedSearch"
+  ],
+  "telemetry": "verbose",
+  "settings": [
+    {
+      "key": "account",
+      "label": "Cuenta",
+      "type": "section",
+      "hint": "Opcional. Sin cuenta accedes al catálogo con sesión anónima."
+    },
+    {
+      "key": "email",
+      "label": "Correo electrónico",
+      "type": "text"
+    },
+    {
+      "key": "password",
+      "label": "Contraseña",
+      "type": "password"
+    },
+    {
+      "key": "status",
+      "label": "Estado de sesión",
+      "type": "status"
+    },
+    {
+      "key": "login",
+      "label": "Iniciar sesión",
+      "type": "action"
+    },
+    {
+      "key": "logout",
+      "label": "Cerrar sesión",
+      "type": "action",
+      "confirm": "¿Cerrar sesión de tu cuenta Xuper?"
+    },
+    {
+      "key": "useSharedAccount",
+      "label": "Usar cuenta compartida",
+      "type": "toggle",
+      "hint": "Muchas personas la usan; puede cerrar la sesión de otra."
+    },
+    {
+      "key": "createAccount",
+      "label": "Crear cuenta",
+      "type": "section",
+      "hint": "Correo, Enviar código, código y contraseña, en ese orden."
+    },
+    {
+      "key": "regEmail",
+      "label": "Correo electrónico",
+      "type": "text",
+      "hint": "Donde llega el código: guárdalo y toca Enviar código"
+    },
+    {
+      "key": "sendCode",
+      "label": "Enviar código",
+      "type": "action"
+    },
+    {
+      "key": "verifyCode",
+      "label": "Código de verificación",
+      "type": "text",
+      "hint": "El código que llega a tu correo"
+    },
+    {
+      "key": "regPassword",
+      "label": "Contraseña",
+      "type": "password",
+      "hint": "La de tu cuenta nueva: guárdala y toca Crear cuenta"
+    },
+    {
+      "key": "register",
+      "label": "Crear cuenta",
+      "type": "action"
+    },
+    {
+      "key": "seeds",
+      "label": "Semillas",
+      "type": "section",
+      "hint": "Sesiones de respaldo para cuando tu zona está bloqueada."
+    },
+    {
+      "key": "autoRefreshSeeds",
+      "label": "Actualizar semillas automáticamente",
+      "type": "toggle",
+      "default": true,
+      "hint": "Solo sin cuenta y con la zona bloqueada"
+    },
+    {
+      "key": "switchSeed",
+      "label": "Cambiar semilla",
+      "type": "action",
+      "hint": "Prueba otra sesión de respaldo si esta va mal"
+    },
+    {
+      "key": "refreshSeeds",
+      "label": "Actualizar semillas",
+      "type": "action",
+      "hint": "Vuelve a descargar las sesiones de respaldo"
+    },
+    {
+      "key": "contributeSeeds",
+      "label": "Aportar una sesión anónima",
+      "type": "toggle",
+      "default": true,
+      "hint": "Comparte una sesión anónima para zonas bloqueadas. Puedes apagarlo."
+    },
+    {
+      "key": "home",
+      "label": "Inicio",
+      "type": "section",
+      "hint": "Una fila con los canales en vivo de tu país al final de Inicio."
+    },
+    {
+      "key": "homeCountry",
+      "label": "Canales en vivo de tu país",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "Ninguno" },
+        { "value": "BO", "label": "Bolivia" },
+        { "value": "CL", "label": "Chile" },
+        { "value": "CO", "label": "Colombia" },
+        { "value": "CR", "label": "Costa Rica" },
+        { "value": "EC", "label": "Ecuador" },
+        { "value": "SV", "label": "El Salvador" },
+        { "value": "ES", "label": "España" },
+        { "value": "US", "label": "Estados Unidos" },
+        { "value": "GT-NI-BZ", "label": "Guatemala, Nicaragua o Belice" },
+        { "value": "HN", "label": "Honduras" },
+        { "value": "MX", "label": "México" },
+        { "value": "PA", "label": "Panamá" },
+        { "value": "PY", "label": "Paraguay" },
+        { "value": "PE", "label": "Perú" },
+        { "value": "PR", "label": "Puerto Rico" },
+        { "value": "DO", "label": "República Dominicana" },
+        { "value": "UY", "label": "Uruguay" },
+        { "value": "VE", "label": "Venezuela" }
+      ]
+    }
+  ],
+  "section": { "label": "Xuper" },
+  "categories": ["movies", "series", "anime", "live"],
+  "theme": { "accent": "#1E90F8", "onAccent": "#050B2D", "background": "#050B2D", "surface": "#101A45", "highlight": "#8FD0FF" },
+  "streamHosts": "any",
+  "liveStreamHosts": "any",
+  "secrets": {
+    "magisKey": {
+      "seal": "kino-sealed:v1:q4wbeSJhxeMRhuzxduyDaqRWVcjxCkWVX-6WjEDid0_M2moGw6tiivh4bFo7RbVLVzqN5AL5ZSwe9amId16VBUszehOSehyKv4fEr-onUP-oSr9tprDw_DRj68vtGFgJkAz_UnLBdWG3FIZA",
+      "use": "cipher-key",
+      "encoding": "hex"
+    },
+    "tmdbKey": "kino-sealed:v1:BvU3io1yZPPb6KxLY5C7cNvm0YOOS7tGf7wY0ioTzhFO_kEvRGrlaFELhhxcs9vqyq0QuzUMBdjujQd4ziih620FD4PsRJHFxt9C0w7Gb0pXA8WER5Xy39c4fsw"
+  }
+}
