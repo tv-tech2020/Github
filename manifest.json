@@ -1,10 +1,7 @@
 {
   "id": "xuper",
-  "name": "Xuper",
+  "name": "Xuper (experimental)",
   "filename": "providers/xuper.js",
-  "supportedTypes": [
-    "movie",
-    "tv"
-  ],
+  "supportedTypes": ["movie", "tv"],
   "enabled": true
 }

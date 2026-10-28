@@ -1,0 +1,3 @@
+STRUCTURE FIXED: manifest.json exists at repository root and points to providers/xuper.js.
+FUNCTIONAL STATUS: NOT A WORKING SCRAPER. getStreams returns [] intentionally.
+No real credential is included. Do not publish secrets.
