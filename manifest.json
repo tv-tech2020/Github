@@ -1,7 +1,16 @@
 {
-  "id": "xuper",
-  "name": "Xuper (experimental)",
-  "filename": "providers/xuper.js",
-  "supportedTypes": ["movie", "tv"],
-  "enabled": true
+  "name": "Xuper Nuvio",
+  "version": "1.0.0",
+  "scrapers": [
+    {
+      "id": "xuper",
+      "name": "Xuper",
+      "description": "Proveedor experimental de Xuper",
+      "version": "1.0.0",
+      "author": "tv-tech2020",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/xuper.js",
+      "enabled": true
+    }
+  ]
 }
