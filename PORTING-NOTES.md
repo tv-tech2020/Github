@@ -7,3 +7,8 @@
 - Usa el contrato global `__tv.search(query)` y `__tv.resolve(ref)` del runtime.
 - Validación local: sintaxis JavaScript y estructura JSON del manifiesto.
 - No se ha podido probar streaming real en una instalación Nuvio; el usuario debe verificar en su dispositivo.
+
+## Corrección 1.4.1
+
+- La búsqueda del runtime devuelve `{ items, next }`; la versión 1.4.0 solo aceptaba arrays y descartaba todos los resultados.
+- Ahora se normalizan las respuestas paginadas (`items`, `results` o array), se registran conteos y errores TMDB, y se mantienen las alternativas VOD con headers de autorización.

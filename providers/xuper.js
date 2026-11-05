@@ -12529,16 +12529,17 @@ async function __xuperTitle(tmdbId, mediaType) {
     result.originalTitle = data.original_title || data.original_name || "";
     result.year = __xuperYear(data.release_date || data.first_air_date || "");
     return result;
-  } catch (_) {
+  } catch (error) {
+    console.log("xuper TMDB: " + (error && error.message ? error.message : String(error)));
     return result;
   }
 }
 
 async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   var type = String(mediaType || "").toLowerCase();
-  type = type === "tv" || type === "series" ? "tv" : "movie";
+  type = type === "tv" || type === "series" || type === "show" ? "tv" : "movie";
   var info = await __xuperTitle(tmdbId, type);
-  if (!info.title) return [];
+  if (!info.title) { console.log("xuper: no se obtuvo metadata TMDB para " + String(tmdbId)); return []; }
   var query = {
     q: info.title,
     originalTitle: info.originalTitle,
@@ -12550,14 +12551,20 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     if (episode != null) query.episode = Number(episode);
   }
   var found = await globalThis.__tv.search(query);
-  var candidates = (Array.isArray(found) ? found : []).filter(function (item) {
+  // El runtime Xuper/Nuvio entrega una página { items, next }, no un array.
+  // Admitimos ambas formas para mantener compatibilidad con builds anteriores.
+  var searchItems = Array.isArray(found) ? found :
+    (found && Array.isArray(found.items) ? found.items :
+    (found && Array.isArray(found.results) ? found.results : []));
+  console.log("xuper search: " + searchItems.length + " resultados para " + info.title);
+  var candidates = searchItems.filter(function (item) {
     return item && !item.adult;
   }).map(function (item) {
     var score = Math.max(
       __xuperSimilarity(item.title, info.title),
       __xuperSimilarity(item.title, info.originalTitle)
     );
-    var itemYear = __xuperYear(item.year);
+    var itemYear = __xuperYear(item.year || item.releaseYear || item.releaseTime || item.date || "");
     if (info.year && itemYear) {
       var yearDiff = Math.abs(info.year - itemYear);
       if (yearDiff === 0) score += 0.1;
@@ -12592,7 +12599,8 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
           name: label,
           url: copy.url,
           provider: "Xuper",
-          headers: copy.headers || {}
+          headers: copy.headers || {},
+          quality: copy.label || "Xuper"
         });
       }
     } catch (error) {
