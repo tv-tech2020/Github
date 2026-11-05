@@ -12518,34 +12518,27 @@ async function __xuperTitle(tmdbId, mediaType) {
   var result = { title: "", originalTitle: "", tmdbId: Number(id) || 0, type: type, year: 0 };
   try {
     if (/^tt\d+$/i.test(id)) {
-      var findUrl = "https://api.themoviedb.org/3/find/" + encodeURIComponent(id) + "?external_source=imdb_id&language=es-MX&api_key=" + encodeURIComponent(String(TMDB_API_KEY || ""));
-      var findResponse = await fetch(findUrl);
-      if (!findResponse.ok) throw new Error("TMDB find HTTP " + findResponse.status);
-      var found = await findResponse.json();
+      var found = await kino.tmdb("/find/" + encodeURIComponent(id), { external_source: "imdb_id", language: "es-MX" });
       var list = type === "tv" ? (found.tv_results || []) : (found.movie_results || []);
       if (!list.length) return result;
       id = String(list[0].id);
       result.tmdbId = Number(id) || 0;
     }
-    var detailUrl = "https://api.themoviedb.org/3/" + type + "/" + encodeURIComponent(id) + "?language=es-MX&api_key=" + encodeURIComponent(String(TMDB_API_KEY || ""));
-    var detailResponse = await fetch(detailUrl);
-    if (!detailResponse.ok) throw new Error("TMDB detail HTTP " + detailResponse.status);
-    var data = await detailResponse.json();
+    var data = await kino.tmdb("/" + type + "/" + id, { language: "es-MX" });
     result.title = data.title || data.name || "";
     result.originalTitle = data.original_title || data.original_name || "";
     result.year = __xuperYear(data.release_date || data.first_air_date || "");
     return result;
-  } catch (error) {
-    console.log("xuper TMDB: " + (error && error.message ? error.message : String(error)));
+  } catch (_) {
     return result;
   }
 }
 
 async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   var type = String(mediaType || "").toLowerCase();
-  type = type === "tv" || type === "series" || type === "show" ? "tv" : "movie";
+  type = type === "tv" || type === "series" ? "tv" : "movie";
   var info = await __xuperTitle(tmdbId, type);
-  if (!info.title) { console.log("xuper: no se obtuvo metadata TMDB para " + String(tmdbId)); return []; }
+  if (!info.title) return [];
   var query = {
     q: info.title,
     originalTitle: info.originalTitle,
@@ -12556,21 +12549,15 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     if (season != null) query.season = Number(season);
     if (episode != null) query.episode = Number(episode);
   }
-  var found = await search(query);
-  // El runtime Xuper/Nuvio entrega una página { items, next }, no un array.
-  // Admitimos ambas formas para mantener compatibilidad con builds anteriores.
-  var searchItems = Array.isArray(found) ? found :
-    (found && Array.isArray(found.items) ? found.items :
-    (found && Array.isArray(found.results) ? found.results : []));
-  console.log("xuper search: " + searchItems.length + " resultados para " + info.title);
-  var candidates = searchItems.filter(function (item) {
+  var found = await globalThis.__tv.search(query);
+  var candidates = (Array.isArray(found) ? found : []).filter(function (item) {
     return item && !item.adult;
   }).map(function (item) {
     var score = Math.max(
       __xuperSimilarity(item.title, info.title),
       __xuperSimilarity(item.title, info.originalTitle)
     );
-    var itemYear = __xuperYear(item.year || item.releaseYear || item.releaseTime || item.date || "");
+    var itemYear = __xuperYear(item.year);
     if (info.year && itemYear) {
       var yearDiff = Math.abs(info.year - itemYear);
       if (yearDiff === 0) score += 0.1;
@@ -12594,7 +12581,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   var output = [];
   for (var i = 0; i < picks.length; i++) {
     try {
-      var resolved = await resolve(picks[i].ref);
+      var resolved = await globalThis.__tv.resolve(picks[i].ref);
       var copies = [resolved].concat(resolved && resolved.alternatives ? resolved.alternatives : []);
       for (var j = 0; j < copies.length; j++) {
         var copy = copies[j];
@@ -12605,8 +12592,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
           name: label,
           url: copy.url,
           provider: "Xuper",
-          headers: copy.headers || {},
-          quality: copy.label || "Xuper"
+          headers: copy.headers || {}
         });
       }
     } catch (error) {

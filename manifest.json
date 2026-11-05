@@ -1,20 +1,19 @@
 {
-  "name": "Xuper Nuvio",
-  "version": "1.4.3",
-  "description": "Xuper para Nuvio 1.0.0: TMDB directo y búsqueda/resolución con funciones locales del proveedor",
+  "name": "Xuper Oficial - Base de prueba",
+  "version": "2.0.1",
+  "description": "Proveedor Xuper oficial aislado para comprobar compatibilidad con Nuvio 1.0.0",
+  "author": "fagx",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
-      "description": "Películas y series Xuper con funciones locales compatibles con Nuvio 1.0.0",
-      "version": "1.4.3",
-      "author": "tv-tech2020",
+      "description": "Películas y series vía Xuper oficial",
+      "version": "1.0.1",
+      "filename": "providers/xuper.js",
       "supportedTypes": [
         "movie",
         "tv"
-      ],
-      "filename": "providers/xuper.js",
-      "enabled": true
+      ]
     }
   ]
 }
