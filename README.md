@@ -1,15 +1,14 @@
-# Xuper Nuvio — configuración de cuenta
+# Xuper para Nuvio — 1.4.0
 
-Este paquete registra un proveedor JavaScript de Nuvio con ajustes configurables para usuario/correo, contraseña y una clave de cifrado opcional del portal.
+Esta versión sustituye el scaffold de activación Samsung 1.3.0 por el plugin Xuper incluido en el ZIP de referencia `nuvio-official-plugins-main` que aportó el usuario. El código implementa búsqueda por título/año usando TMDB y búsqueda/resolución mediante el adaptador `__tv` que proporciona el runtime de Nuvio.
 
-## Instalar
+## Instalación
 
-Usa la URL pública del `manifest.json` de este repositorio en Ajustes → Plugins de Nuvio/Arrivo.
+Publica `manifest.json` y `providers/xuper.js` en la raíz de tu repositorio y añade la URL raw del manifiesto en Nuvio estándar. Requiere Nuvio 0.6.7 o superior según el repositorio de referencia.
 
-## Estado real
+## Importante
 
-**Este paquete todavía es un scaffold, no un extractor funcional.** Los campos de configuración se declaran usando `onSettings` y el manifiesto `hasSettings: true`; `getStreams` registra únicamente si hay valores configurados y devuelve `[]` deliberadamente.
-
-Para reproducir contenido todavía se debe portar y probar la autenticación del portal, el cifrado/descifrado y la resolución de enlaces desde la implementación original de Kino. `magisKey` es una clave de cifrado distinta de la contraseña de cuenta; no se puede inferir de las credenciales.
-
-No introduzcas credenciales reales en archivos del repositorio. Escríbelas solo en la pantalla de ajustes de la app. No publiques capturas que las muestren.
+- Es una integración de referencia, no una prueba de reproducción en el dispositivo del usuario. La compatibilidad depende de que la versión instalada de Nuvio exponga `kino.tmdb`, `globalThis.__tv.search` y `globalThis.__tv.resolve`.
+- Esta variante no muestra campos de usuario/contraseña: la implementación de referencia no usa autenticación de cuenta verificable.
+- La clave interna del portal está incluida en el JavaScript del proveedor; no debe considerarse secreta.
+- No incorpora recuperación de tokens de sesión compartidos desde repositorios públicos.
