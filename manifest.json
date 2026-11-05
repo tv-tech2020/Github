@@ -1,14 +1,14 @@
 {
   "name": "Xuper Oficial - Base de prueba",
-  "version": "2.0.1",
-  "description": "Proveedor Xuper oficial aislado para comprobar compatibilidad con Nuvio 1.0.0",
+  "version": "2.0.2",
+  "description": "Proveedor Xuper oficial para Nuvio 1.0.0; normaliza la respuesta paginada de búsqueda.",
   "author": "fagx",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
       "description": "Películas y series vía Xuper oficial",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "filename": "providers/xuper.js",
       "supportedTypes": [
         "movie",

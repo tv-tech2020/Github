@@ -12550,7 +12550,10 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     if (episode != null) query.episode = Number(episode);
   }
   var found = await globalThis.__tv.search(query);
-  var candidates = (Array.isArray(found) ? found : []).filter(function (item) {
+  // Nuvio/Xuper search devuelve una pagina { items: [...] }, no un array plano.
+  var foundItems = Array.isArray(found) ? found :
+    (found && Array.isArray(found.items) ? found.items : []);
+  var candidates = foundItems.filter(function (item) {
     return item && !item.adult;
   }).map(function (item) {
     var score = Math.max(
