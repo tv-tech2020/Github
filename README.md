@@ -1,4 +1,4 @@
-# Xuper para Nuvio — 1.4.1
+# Xuper para Nuvio — 1.4.2
 
 Esta versión sustituye el scaffold de activación Samsung 1.3.0 por el plugin Xuper incluido en el ZIP de referencia `nuvio-official-plugins-main` que aportó el usuario. El código implementa búsqueda por título/año usando TMDB y búsqueda/resolución mediante el adaptador `__tv` que proporciona el runtime de Nuvio.
 
