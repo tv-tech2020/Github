@@ -1,4 +1,4 @@
-Xuper Nuvio 2.1.8
+Xuper Nuvio 2.1.9
 
 Plugin de Xuper para Nuvio TV. Incluye compatibilidad con Hermes y resolución SLB v15/v14.
 

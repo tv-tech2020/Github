@@ -1,6 +1,6 @@
 {
   "name": "Xuper Nuvio",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "Plugin Xuper para Nuvio TV",
   "author": "fagx",
   "scrapers": [
@@ -8,7 +8,7 @@
       "id": "xuper",
       "name": "Xuper",
       "description": "Búsqueda y reproducción desde Xuper",
-      "version": "2.1.8",
+      "version": "2.1.9",
       "filename": "xuper.js",
       "supportedTypes": [
         "movie",

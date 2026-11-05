@@ -12640,10 +12640,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   type = type === "tv" || type === "series" ? "tv" : "movie";
   try {
     var info = await __xuperTitle(tmdbId, type);
-      " original=" + (info.originalTitle || "(vacío)") + " año=" + (info.year || "?"));
-    if (!info.title) {
-      return [];
-    }
+    if (!info.title) return [];
 
     var query = {
       q: info.title,
@@ -12661,11 +12658,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
       (found && Array.isArray(found.items) ? found.items :
       (found && Array.isArray(found.results) ? found.results :
       (found && Array.isArray(found.data) ? found.data : [])));
-      (Array.isArray(found) ? "array" : (found && typeof found === "object" ? Object.keys(found).join(",") : typeof found)) +
-      " resultados=" + results.length);
-    if (!results.length) {
-      return [];
-    }
+    if (!results.length) return [];
 
     var candidates = results.filter(function (item) {
       return item && !item.adult;
@@ -12689,10 +12682,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     }).slice(0, 3).map(function (entry) {
       return entry.item;
     });
-
-    if (!candidates.length) {
-      return [];
-    }
+    if (!candidates.length) return [];
 
     var output = [];
     for (var i = 0; i < candidates.length; i++) {
@@ -12703,7 +12693,6 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
         else if (resolved && Array.isArray(resolved.streams)) copies = resolved.streams;
         else if (resolved && Array.isArray(resolved.sources)) copies = resolved.sources;
         else if (resolved) copies = [resolved].concat(Array.isArray(resolved.alternatives) ? resolved.alternatives : []);
-        var added = 0;
         for (var j = 0; j < copies.length; j++) {
           var copy = copies[j];
           if (!copy || typeof copy.url !== "string" || !/^https?:\/\//i.test(copy.url)) continue;
@@ -12715,23 +12704,20 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
             provider: "Xuper",
             headers: copy.headers || {}
           });
-          added++;
         }
-      } catch (error) {
+      } catch (_) {
       }
     }
 
     var seen = {};
-    var unique = output.filter(function (item) {
+    return output.filter(function (item) {
       var key = item.url.replace(/[?&]retry=\d+/, "");
       if (seen[key]) return false;
       seen[key] = true;
       return true;
     });
-    return unique;
-  } catch (error) {
+  } catch (_) {
     return [];
   }
 }
-
 module.exports = { getStreams: __xuperGetStreams };
