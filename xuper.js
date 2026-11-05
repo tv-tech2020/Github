@@ -10475,8 +10475,22 @@ function portalDurationMs(raw) {
   return parts.reduce((acc, p) => acc * 60 + Number(p), 0) * 1e3;
 }
 var mediaScore = (m) => (optStringStrict(m.encodeFormat).toLowerCase() === "h264" ? 0 : 2) + (optStringStrict(m.videoFormat).toLowerCase() === "mp4" ? 0 : 1);
-function rankedMedia(play) {
-  const episode = isObject(play) ? objects(play.episodeList)[0] : void 0;
+function episodeFor(play, contentId) {
+  const episodes = isObject(play) ? objects(play.episodeList) : [];
+  if (episodes.length === 0) return void 0;
+  const requestedId = optStringStrict(contentId);
+  if (requestedId !== "") {
+    const matched = episodes.find((episode) =>
+      optStringStrict(episode.programContentId) === requestedId ||
+      optStringStrict(episode.contentId) === requestedId
+    );
+    if (matched) return matched;
+    if (episodes.some((episode) => notBlank(optStringStrict(episode.programContentId)))) return void 0;
+  }
+  return episodes[0];
+}
+function rankedMedia(play, contentId) {
+  const episode = episodeFor(play, contentId);
   if (!episode) return [];
   const candidates = objects(episode.totalMovieList).flatMap((tm) => objects(tm.movieList)).filter((m) => notBlank(optStringStrict(m.contentId)));
   return candidates.map((m, i) => ({ m, i, s: mediaScore(m) })).sort((a, b) => a.s - b.s || a.i - b.i).map((x) => x.m);
@@ -10495,8 +10509,8 @@ function expiresInSeconds(auth, nowMs) {
   return Math.min(EXPIRES_MAX_S, Math.max(EXPIRES_MIN_S, left));
 }
 var licenseOf = (m) => optStringStrict(objects(m.licenseList)[0]?.license);
-function readSubtitles(play) {
-  const episode = objects(play.episodeList)[0];
+function readSubtitles(play, contentId) {
+  const episode = episodeFor(play, contentId);
   const out = [];
   for (const sub of objects(episode?.subtitleList)) {
     const file = objects(sub.file)[0];
@@ -10514,6 +10528,24 @@ function vodCdns(slb) {
     for (const u of objects(cdn.url_list)) {
       const url = optStringStrict(u.url);
       if ((isCfl(url) || optStringStrict(u.sign_type) === "cfl") && optStringStrict(u.tag) === "free") {
+        const bases = [withScheme(optStringStrict(cdn.main_addr))];
+        const spare = optStringStrict(cdn.spared_addr);
+        if (notBlank(spare) && !bases.includes(withScheme(spare.trim()))) bases.push(withScheme(spare.trim()));
+        out.push({ bases, auth: url });
+        break;
+      }
+    }
+  }
+  // Newer portal builds may return free VOD authorization without CacheFly's
+  // sign_type marker. Keep the strict CacheFly preference above, then accept
+  // the free entry exposed by the portal as the webOS port does.
+  if (out.length === 0) {
+    for (const cdn of objects(slb.cdn_list)) {
+      if (optStringStrict(cdn.tag) !== "vod") continue;
+      for (const u of objects(cdn.url_list)) {
+        const url = optStringStrict(u.url);
+        const free = optStringStrict(u.tag) === "free" || url.indexOf("tag=free") !== -1;
+        if (!notBlank(url) || !free) continue;
         const bases = [withScheme(optStringStrict(cdn.main_addr))];
         const spare = optStringStrict(cdn.spared_addr);
         if (notBlank(spare) && !bases.includes(withScheme(spare.trim()))) bases.push(withScheme(spare.trim()));
@@ -10555,11 +10587,25 @@ function makeResolve({ kino: kino2, portal, session, clock: clock2, config, port
   let slbCache = null;
   const slbFor = async (v) => {
     if (slbCache && slbCache.token === v.userToken && clock2.now() < slbCache.expiresMs) return slbCache.slb;
-    const answer = await portal.call("v14/getSlbInfo", slbBean(config.apkVersion), viewOpts(v));
-    const fresh = isObject(answer) ? answer : {};
-    const ttl = slbLifetime(fresh, clock2.now());
-    slbCache = ttl > 0 ? { slb: fresh, token: v.userToken, expiresMs: clock2.now() + ttl * 1e3 } : null;
-    return fresh;
+    let lastError = null;
+    for (const path of ["v15/getSlbInfo", "v14/getSlbInfo"]) {
+      try {
+        const answer = await portal.call(path, slbBean(config.apkVersion), viewOpts(v));
+        const fresh = isObject(answer) ? answer : {};
+        if (vodCdns(fresh).length === 0) {
+          lastError = unavailable("Xuper no expuso una autorización VOD gratuita");
+          continue;
+        }
+        const ttl = slbLifetime(fresh, clock2.now());
+        slbCache = ttl > 0 ? { slb: fresh, token: v.userToken, expiresMs: clock2.now() + ttl * 1e3 } : null;
+        trace(kino2, "resolve", "slb", { path });
+        return fresh;
+      } catch (error) {
+        lastError = error;
+        trace(kino2, "resolve", "slb_retry", { path, code: errCode(error) });
+      }
+    }
+    throw lastError || unavailable("Xuper no expuso CDN de VOD");
   };
   const sessionSlb = (seed, deadline) => seed ? slbFor({ ...seed, deadline }) : session.withValidSession(slbFor, { deadline });
   async function chapterFrom(magis, deadline) {
@@ -10581,7 +10627,7 @@ function makeResolve({ kino: kino2, portal, session, clock: clock2, config, port
         viewOpts(v)
       );
     }, { seedFallback: true, deadline: deadline - FOLLOW_UP_RESERVE_MS });
-    const tracks = rankedMedia(play);
+    const tracks = rankedMedia(play, contentId);
     const best = tracks[0];
     if (!best) throw unavailable("Xuper devolvi\xF3 sin media reproducible");
     const license = licenseOf(best);
@@ -10642,7 +10688,7 @@ function makeResolve({ kino: kino2, portal, session, clock: clock2, config, port
     const expires = expiresInSeconds(first.headers["Content-Auth"], clock2.now());
     return {
       ...first,
-      subtitles: readSubtitles(play),
+      subtitles: readSubtitles(play, contentId),
       // A chapter's own declared duration wins (the portal sends it empty for most series).
       durationMs: chapter2 ? portalDurationMs(chapter2.duration) : portalDurationMs(best.duration),
       ...expires !== null ? { expiresInSeconds: expires } : {},
