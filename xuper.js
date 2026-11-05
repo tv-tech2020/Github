@@ -6842,7 +6842,17 @@ var kino = {
 globalThis.kino = kino;
 
 // src/crypto.js
-var toHex = (s) => Array.from(new TextEncoder().encode(s), (b) => b.toString(16).padStart(2, "0")).join("");
+// The portal payload is Base64, which is ASCII. Avoid TextEncoder here because
+// the Nuvio Hermes runtime does not expose it in every build.
+var toHex = (s) => {
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    const byte = s.charCodeAt(i);
+    if (byte > 0x7f) throw new Error("non-ascii cipher output");
+    out += byte.toString(16).padStart(2, "0");
+  }
+  return out;
+};
 var HEX_CHUNK = 65536;
 var NOT_LOWER_HEX = /[^0-9a-f]/;
 var NOT_ASCII = /[^\x00-\x7f]/;
@@ -6893,7 +6903,8 @@ function makeCrypto(kino2, { onDecode = null } = {}) {
         });
         if (typeof b64 !== "string" || b64 === "") throw new Error("empty");
         return toHex(b64);
-      } catch (_) {
+      } catch (error) {
+        console.log("[XuperDiag] crypto encrypt detail=" + (error && error.message ? error.message : String(error)));
         throw fail("cifrar");
       }
     },
@@ -8577,6 +8588,19 @@ var ID = /^[A-Za-z0-9._~-]{1,128}$/;
 var REF_PREFIX = "xlive1:";
 var MAX_CODE_CHARS = 2e3;
 var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+function utf8Bytes(value) {
+  const encoded = encodeURIComponent(String(value));
+  const bytes = [];
+  for (let i = 0; i < encoded.length; i++) {
+    if (encoded[i] === "%") {
+      bytes.push(parseInt(encoded.slice(i + 1, i + 3), 16));
+      i += 2;
+    } else {
+      bytes.push(encoded.charCodeAt(i));
+    }
+  }
+  return new Uint8Array(bytes);
+}
 var plainCode = (code) => ID.test(code) && !code.startsWith("~") && !code.startsWith("x.");
 function b64url(bytes) {
   let out = "";
@@ -8591,7 +8615,7 @@ function b64url(bytes) {
 function hash128(s) {
   const lanes = [2166136261, 16777619 ^ 2654435769, 3735928559, 1103547991];
   const mul = [16777619, 2246822519, 3266489917, 668265263];
-  for (const b of new TextEncoder().encode(s)) {
+  for (const b of utf8Bytes(s)) {
     for (let i = 0; i < 4; i++) {
       lanes[i] = Math.imul(lanes[i] ^ b + i, mul[i]);
       lanes[i] ^= lanes[(i + 1) % 4] >>> 13;
@@ -8602,7 +8626,7 @@ function hash128(s) {
 function channelOf(code) {
   if (typeof code !== "string" || code.trim() === "" || code.length > MAX_CODE_CHARS) return null;
   if (plainCode(code)) return { id: code, ref: code };
-  const body = b64url(new TextEncoder().encode(code));
+  const body = b64url(utf8Bytes(code));
   const id = ("x.b" + body).length <= 128 ? "x.b" + body : "x.h" + hash128(code);
   return { id, ref: REF_PREFIX + code };
 }
@@ -11332,7 +11356,7 @@ function digestHex(bytes) {
   return out;
 }
 function signO3(token, startMomentMs) {
-  const head = new TextEncoder().encode(
+  const head = utf8Bytes(
     `token=${token}&sign2_method=sign_o3&instance=0&start_moment=${startMomentMs}`
   );
   const msg = new Uint8Array(head.length + SALT.length);

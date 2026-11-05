@@ -1,6 +1,6 @@
 {
   "name": "Xuper Nuvio - Diagnóstico",
-  "version": "2.1.1",
+  "version": "2.1.3",
   "description": "Xuper con compatibilidad Hermes para Nuvio TV",
   "author": "fagx",
   "scrapers": [
@@ -8,7 +8,7 @@
       "id": "xuper",
       "name": "Xuper",
       "description": "Xuper con trazas de TMDB, búsqueda y resolución",
-      "version": "2.1.1",
+      "version": "2.1.3",
       "filename": "xuper.js",
       "supportedTypes": [
         "movie",

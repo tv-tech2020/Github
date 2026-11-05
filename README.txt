@@ -1,4 +1,4 @@
-Xuper Nuvio 2.1.1 - compatibilidad Hermes y diagnóstico
+Xuper Nuvio 2.1.3 - compatibilidad Hermes y diagnóstico
 
 Basado en el archivo xuper.js del repositorio oficial nuvio-official-plugins.
 Incluye una sola fuente (Xuper) y registra etapas:
@@ -7,7 +7,7 @@ Incluye una sola fuente (Xuper) y registra etapas:
 3. Normalización de resultados (array, items, results o data)
 4. Coincidencia y resolución
 
-Añade un respaldo para generar identificadores de dispositivo cuando Hermes no expone WebCrypto/crypto. Se usa solo para huellas y selección de semilla, nunca como token de autenticación o clave criptográfica.
+Añade respaldos cuando Hermes no expone WebCrypto/crypto y reemplaza las dependencias de TextEncoder con una codificación UTF-8 compatible. Los bytes aleatorios solo se usan para huellas y selección de semilla, nunca como token de autenticación o clave criptográfica. El texto cifrado, que es Base64 ASCII, se pasa a hexadecimal sin depender de TextEncoder.
 
 No incorpora credenciales ni tokens compartidos. La disponibilidad de streams depende de que el servicio entregue resultados y enlaces autorizados.
 
