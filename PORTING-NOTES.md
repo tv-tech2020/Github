@@ -12,10 +12,3 @@
 
 - La búsqueda del runtime devuelve `{ items, next }`; la versión 1.4.0 solo aceptaba arrays y descartaba todos los resultados.
 - Ahora se normalizan las respuestas paginadas (`items`, `results` o array), se registran conteos y errores TMDB, y se mantienen las alternativas VOD con headers de autorización.
-
-
-## Corrección 1.4.2
-
-- El buscador interno `__tv.search` devuelve registros compactos (`c`, `t`, `a`, `p`, `y`), no objetos `title/ref/year`.
-- Se puntúan los títulos compactos y se construye el ref Xuper `magis1:<programType>:0:<contentId>` antes de llamar a `__tv.resolve`.
-- Validación local: `node --check` y JSON del manifiesto. No implica reproducción verificada en el dispositivo.

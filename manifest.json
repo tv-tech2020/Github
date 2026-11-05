@@ -1,13 +1,13 @@
 {
   "name": "Xuper Nuvio",
-  "version": "1.4.2",
-  "description": "Xuper para Nuvio estándar; corrección de formato compacto de resultados y refs de resolución",
+  "version": "1.4.3",
+  "description": "Xuper para Nuvio 1.0.0: TMDB directo y búsqueda/resolución con funciones locales del proveedor",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
-      "description": "Películas y series de Xuper con mapeo de resultados compactos a refs reproducibles",
-      "version": "1.4.2",
+      "description": "Películas y series Xuper con funciones locales compatibles con Nuvio 1.0.0",
+      "version": "1.4.3",
       "author": "tv-tech2020",
       "supportedTypes": [
         "movie",

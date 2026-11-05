@@ -12518,13 +12518,19 @@ async function __xuperTitle(tmdbId, mediaType) {
   var result = { title: "", originalTitle: "", tmdbId: Number(id) || 0, type: type, year: 0 };
   try {
     if (/^tt\d+$/i.test(id)) {
-      var found = await kino.tmdb("/find/" + encodeURIComponent(id), { external_source: "imdb_id", language: "es-MX" });
+      var findUrl = "https://api.themoviedb.org/3/find/" + encodeURIComponent(id) + "?external_source=imdb_id&language=es-MX&api_key=" + encodeURIComponent(String(TMDB_API_KEY || ""));
+      var findResponse = await fetch(findUrl);
+      if (!findResponse.ok) throw new Error("TMDB find HTTP " + findResponse.status);
+      var found = await findResponse.json();
       var list = type === "tv" ? (found.tv_results || []) : (found.movie_results || []);
       if (!list.length) return result;
       id = String(list[0].id);
       result.tmdbId = Number(id) || 0;
     }
-    var data = await kino.tmdb("/" + type + "/" + id, { language: "es-MX" });
+    var detailUrl = "https://api.themoviedb.org/3/" + type + "/" + encodeURIComponent(id) + "?language=es-MX&api_key=" + encodeURIComponent(String(TMDB_API_KEY || ""));
+    var detailResponse = await fetch(detailUrl);
+    if (!detailResponse.ok) throw new Error("TMDB detail HTTP " + detailResponse.status);
+    var data = await detailResponse.json();
     result.title = data.title || data.name || "";
     result.originalTitle = data.original_title || data.original_name || "";
     result.year = __xuperYear(data.release_date || data.first_air_date || "");
@@ -12550,35 +12556,28 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     if (season != null) query.season = Number(season);
     if (episode != null) query.episode = Number(episode);
   }
-  var found = await globalThis.__tv.search(query);
+  var found = await search(query);
   // El runtime Xuper/Nuvio entrega una página { items, next }, no un array.
   // Admitimos ambas formas para mantener compatibilidad con builds anteriores.
   var searchItems = Array.isArray(found) ? found :
     (found && Array.isArray(found.items) ? found.items :
     (found && Array.isArray(found.results) ? found.results : []));
   console.log("xuper search: " + searchItems.length + " resultados para " + info.title);
-  // El buscador interno de Xuper devuelve registros compactos {c,t,a,p,y},
-  // no los objetos del catálogo visual {title,ref,year}.
   var candidates = searchItems.filter(function (item) {
-    return item && !item.x && !item.adult;
+    return item && !item.adult;
   }).map(function (item) {
-    var itemTitle = item.title || item.t || item.name || "";
     var score = Math.max(
-      __xuperSimilarity(itemTitle, info.title),
-      __xuperSimilarity(itemTitle, info.originalTitle),
-      __xuperSimilarity(item.a || "", info.title)
+      __xuperSimilarity(item.title, info.title),
+      __xuperSimilarity(item.title, info.originalTitle)
     );
-    var itemYear = __xuperYear(item.year || item.y || item.releaseYear || item.releaseTime || item.date || "");
+    var itemYear = __xuperYear(item.year || item.releaseYear || item.releaseTime || item.date || "");
     if (info.year && itemYear) {
       var yearDiff = Math.abs(info.year - itemYear);
       if (yearDiff === 0) score += 0.1;
       else if (yearDiff <= 1) score += 0.05;
       else if (yearDiff >= 2) score -= 0.2;
     }
-    var programType = item.p || (type === "tv" ? "teleplay" : "movie");
-    var contentId = item.c || item.id;
-    var ref = item.ref || (contentId ? encode({ contentId: String(contentId), programType: programType, episode: 0 }) : "");
-    return { item: item, title: itemTitle, ref: ref, score: score };
+    return { item: item, score: score };
   }).filter(function (entry) {
     return entry.score >= 0.7;
   }).sort(function (left, right) {
@@ -12590,13 +12589,12 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
     console.log("xuper picks: sin coincidencias para " + info.title);
     return [];
   }
-  console.log("xuper picks: " + candidates.map(function (entry) { return entry.title; }).join(" | "));
+  console.log("xuper picks: " + candidates.map(function (item) { return item.title; }).join(" | "));
   var picks = candidates;
   var output = [];
   for (var i = 0; i < picks.length; i++) {
     try {
-      if (!picks[i].ref) continue;
-      var resolved = await globalThis.__tv.resolve(picks[i].ref);
+      var resolved = await resolve(picks[i].ref);
       var copies = [resolved].concat(resolved && resolved.alternatives ? resolved.alternatives : []);
       for (var j = 0; j < copies.length; j++) {
         var copy = copies[j];
