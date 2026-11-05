@@ -12534,81 +12534,117 @@ async function __xuperTitle(tmdbId, mediaType) {
   }
 }
 
+
 async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   var type = String(mediaType || "").toLowerCase();
   type = type === "tv" || type === "series" ? "tv" : "movie";
-  var info = await __xuperTitle(tmdbId, type);
-  if (!info.title) return [];
-  var query = {
-    q: info.title,
-    originalTitle: info.originalTitle,
-    tmdbId: info.tmdbId,
-    type: type
-  };
-  if (type === "tv") {
-    if (season != null) query.season = Number(season);
-    if (episode != null) query.episode = Number(episode);
-  }
-  var found = await globalThis.__tv.search(query);
-  // Nuvio/Xuper search devuelve una pagina { items: [...] }, no un array plano.
-  var foundItems = Array.isArray(found) ? found :
-    (found && Array.isArray(found.items) ? found.items : []);
-  var candidates = foundItems.filter(function (item) {
-    return item && !item.adult;
-  }).map(function (item) {
-    var score = Math.max(
-      __xuperSimilarity(item.title, info.title),
-      __xuperSimilarity(item.title, info.originalTitle)
-    );
-    var itemYear = __xuperYear(item.year);
-    if (info.year && itemYear) {
-      var yearDiff = Math.abs(info.year - itemYear);
-      if (yearDiff === 0) score += 0.1;
-      else if (yearDiff <= 1) score += 0.05;
-      else if (yearDiff >= 2) score -= 0.2;
+  console.log("[XuperDiag] 1/4 inicio tmdb=" + tmdbId + " tipo=" + type);
+  try {
+    var info = await __xuperTitle(tmdbId, type);
+    console.log("[XuperDiag] 2/4 TMDB titulo=" + (info.title || "(vacío)") +
+      " original=" + (info.originalTitle || "(vacío)") + " año=" + (info.year || "?"));
+    if (!info.title) {
+      console.log("[XuperDiag] ERROR_TMDB: no se pudo obtener el título desde TMDB");
+      return [];
     }
-    return { item: item, score: score };
-  }).filter(function (entry) {
-    return entry.score >= 0.7;
-  }).sort(function (left, right) {
-    return right.score - left.score;
-  }).slice(0, 3).map(function (entry) {
-    return entry.item;
-  });
-  if (candidates.length === 0) {
-    console.log("xuper picks: sin coincidencias para " + info.title);
+
+    var query = {
+      q: info.title,
+      originalTitle: info.originalTitle,
+      tmdbId: info.tmdbId,
+      type: type
+    };
+    if (type === "tv") {
+      if (season != null) query.season = Number(season);
+      if (episode != null) query.episode = Number(episode);
+    }
+
+    console.log("[XuperDiag] 3/4 consultando __tv.search");
+    var found = await globalThis.__tv.search(query);
+    var results = Array.isArray(found) ? found :
+      (found && Array.isArray(found.items) ? found.items :
+      (found && Array.isArray(found.results) ? found.results :
+      (found && Array.isArray(found.data) ? found.data : [])));
+    console.log("[XuperDiag] búsqueda formato=" +
+      (Array.isArray(found) ? "array" : (found && typeof found === "object" ? Object.keys(found).join(",") : typeof found)) +
+      " resultados=" + results.length);
+    if (!results.length) {
+      console.log("[XuperDiag] ERROR_BUSQUEDA: Xuper no devolvió elementos");
+      return [];
+    }
+
+    var candidates = results.filter(function (item) {
+      return item && !item.adult;
+    }).map(function (item) {
+      var score = Math.max(
+        __xuperSimilarity(item.title || item.name, info.title),
+        __xuperSimilarity(item.title || item.name, info.originalTitle)
+      );
+      var itemYear = __xuperYear(item.year || item.releaseDate || item.release_date);
+      if (info.year && itemYear) {
+        var yearDiff = Math.abs(info.year - itemYear);
+        if (yearDiff === 0) score += 0.1;
+        else if (yearDiff <= 1) score += 0.05;
+        else if (yearDiff >= 2) score -= 0.2;
+      }
+      return { item: item, score: score };
+    }).filter(function (entry) {
+      return entry.score >= 0.7 && entry.item.ref;
+    }).sort(function (left, right) {
+      return right.score - left.score;
+    }).slice(0, 3).map(function (entry) {
+      return entry.item;
+    });
+
+    console.log("[XuperDiag] candidatos compatibles=" + candidates.length);
+    if (!candidates.length) {
+      console.log("[XuperDiag] ERROR_COINCIDENCIA: hay resultados, pero ninguno coincide por título/año o tiene ref");
+      return [];
+    }
+
+    var output = [];
+    for (var i = 0; i < candidates.length; i++) {
+      try {
+        console.log("[XuperDiag] 4/4 resolviendo candidato " + (i + 1) + ": " + (candidates[i].title || candidates[i].name || "?"));
+        var resolved = await globalThis.__tv.resolve(candidates[i].ref);
+        var copies = [];
+        if (Array.isArray(resolved)) copies = resolved;
+        else if (resolved && Array.isArray(resolved.streams)) copies = resolved.streams;
+        else if (resolved && Array.isArray(resolved.sources)) copies = resolved.sources;
+        else if (resolved) copies = [resolved].concat(Array.isArray(resolved.alternatives) ? resolved.alternatives : []);
+        var added = 0;
+        for (var j = 0; j < copies.length; j++) {
+          var copy = copies[j];
+          if (!copy || typeof copy.url !== "string" || !/^https?:\/\//i.test(copy.url)) continue;
+          var label = [candidates[i].title || candidates[i].name, copy.label].filter(Boolean).join(" · ");
+          output.push({
+            title: label || "Xuper",
+            name: label || "Xuper",
+            url: copy.url,
+            provider: "Xuper",
+            headers: copy.headers || {}
+          });
+          added++;
+        }
+        console.log("[XuperDiag] resolución candidato " + (i + 1) + " streams=" + added);
+      } catch (error) {
+        console.log("[XuperDiag] ERROR_RESOLUCION: " + (error && error.message ? error.message : error));
+      }
+    }
+
+    var seen = {};
+    var unique = output.filter(function (item) {
+      var key = item.url.replace(/[?&]retry=\d+/, "");
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+    console.log("[XuperDiag] FIN streams=" + unique.length);
+    return unique;
+  } catch (error) {
+    console.log("[XuperDiag] ERROR_GENERAL: " + (error && error.message ? error.message : error));
     return [];
   }
-  console.log("xuper picks: " + candidates.map(function (item) { return item.title; }).join(" | "));
-  var picks = candidates;
-  var output = [];
-  for (var i = 0; i < picks.length; i++) {
-    try {
-      var resolved = await globalThis.__tv.resolve(picks[i].ref);
-      var copies = [resolved].concat(resolved && resolved.alternatives ? resolved.alternatives : []);
-      for (var j = 0; j < copies.length; j++) {
-        var copy = copies[j];
-        if (!copy || !copy.url) continue;
-        var label = [picks[i].title, copy.label].filter(Boolean).join(" \u00b7 ");
-        output.push({
-          title: label,
-          name: label,
-          url: copy.url,
-          provider: "Xuper",
-          headers: copy.headers || {}
-        });
-      }
-    } catch (error) {
-      console.log("xuper resolve: " + (error && error.message ? error.message : error));
-    }
-  }
-  var seen = {};
-  return output.filter(function (item) {
-    var key = item.url.replace(/[?&]retry=\d+/, "");
-    if (seen[key]) return false;
-    seen[key] = true;
-    return true;
-  });
 }
 
 module.exports = { getStreams: __xuperGetStreams };

@@ -1,7 +1,14 @@
-Xuper Oficial - Base de prueba v2.0.2
+Xuper Nuvio 2.1.0 - paquete de diagnóstico
 
-Cambio principal: Nuvio devuelve los resultados de __tv.search() dentro de { items: [...] }. Esta versión consume esa estructura y no descarta todos los resultados como ocurría antes.
+Basado en el archivo xuper.js del repositorio oficial nuvio-official-plugins.
+Incluye una sola fuente (Xuper) y registra etapas:
+1. Inicio / TMDB
+2. Búsqueda del catálogo
+3. Normalización de resultados (array, items, results o data)
+4. Coincidencia y resolución
 
-Instalación: importar el ZIP en Nuvio 1.0.0. Probar TMDB 603 (película).
+No incorpora credenciales, tokens compartidos ni mecanismos para eludir autenticación.
+La disponibilidad de streams depende de que el servicio entregue resultados y enlaces autorizados.
 
-Nota: la integridad y sintaxis del paquete se validan localmente; la reproducción final depende de la disponibilidad del servicio Xuper y debe confirmarse en el dispositivo.
+Instalación: importar este ZIP como repositorio/plugin en Nuvio 1.0.0.
+Prueba sugerida: película TMDB 603. Luego revisar Diagnósticos/logs y compartir la captura.

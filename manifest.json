@@ -1,15 +1,15 @@
 {
-  "name": "Xuper Oficial - Base de prueba",
-  "version": "2.0.2",
-  "description": "Proveedor Xuper oficial para Nuvio 1.0.0; normaliza la respuesta paginada de búsqueda.",
+  "name": "Xuper Nuvio - Diagnóstico",
+  "version": "2.1.0",
+  "description": "Xuper oficial con diagnóstico por etapas para Nuvio 1.0.0",
   "author": "fagx",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
-      "description": "Películas y series vía Xuper oficial",
-      "version": "1.0.2",
-      "filename": "providers/xuper.js",
+      "description": "Xuper oficial con trazas de TMDB, búsqueda y resolución",
+      "version": "2.1.0",
+      "filename": "xuper.js",
       "supportedTypes": [
         "movie",
         "tv"
