@@ -7477,7 +7477,17 @@ function makePortal({ kino: kino2, crypto, config, clock: clock2, snProvider, mo
       const now = clock2.now();
       if (lastCallMs !== null) {
         const wait = Math.min(MAX_SLEEP_MS, Math.ceil(RATE_LIMIT_MS - (now - lastCallMs)));
-        if (wait > 0) await kino2.sleep(wait);
+        if (wait > 0) {
+          try {
+            await kino2.sleep(wait);
+          } catch (error) {
+            // Some embedded Hermes runtimes expose kino.sleep but its
+            // implementation depends on the unavailable global setTimeout.
+            // Keep the request queue moving; portal calls are still serialized.
+            if (referenceName(error) !== "setTimeout") throw error;
+            trace(kino2, "portal", "sleep_unavailable", { wait });
+          }
+        }
       }
       lastCallMs = clock2.now();
     });
@@ -10560,6 +10570,13 @@ function vodCdn(slb) {
   const first = vodCdns(slb)[0];
   return first ? { base: first.bases[0], auth: first.auth } : null;
 }
+function referenceName(error) {
+  if (!error || error.name !== "ReferenceError" || typeof error.message !== "string") return void 0;
+  const message = error.message;
+  const match = /(?:Can't find variable:|undefined variable:?\s*|identifier\s+)([A-Za-z_$][\w$]*)/i.exec(message) ||
+    /([A-Za-z_$][\w$]*) is not defined/i.exec(message);
+  return match ? match[1] : "unknown";
+}
 function slbLifetime(slb, nowMs) {
   const text2 = optStringStrict(slb.invalidTime);
   const declaredN = INT7.test(text2) ? Number(text2) : NaN;
@@ -10602,7 +10619,7 @@ function makeResolve({ kino: kino2, portal, session, clock: clock2, config, port
         return fresh;
       } catch (error) {
         lastError = error;
-        trace(kino2, "resolve", "slb_retry", { path, code: errCode(error) });
+        trace(kino2, "resolve", "slb_retry", { path, code: errCode(error), ref: referenceName(error) });
       }
     }
     throw lastError || unavailable("Xuper no expuso CDN de VOD");

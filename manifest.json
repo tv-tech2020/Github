@@ -1,14 +1,14 @@
 {
   "name": "Xuper Nuvio - Diagnóstico",
-  "version": "2.1.4",
+  "version": "2.1.6",
   "description": "Xuper con compatibilidad Hermes y resolución SLB actualizada para Nuvio TV",
   "author": "fagx",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
-      "description": "Xuper con trazas de TMDB, búsqueda y resolución SLB v15/v14",
-      "version": "2.1.4",
+      "description": "Xuper con control de temporizador Hermes y diagnóstico SLB v15/v14",
+      "version": "2.1.6",
       "filename": "xuper.js",
       "supportedTypes": [
         "movie",
