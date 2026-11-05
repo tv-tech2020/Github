@@ -9347,6 +9347,7 @@ function makeSearch({ kino: kino2, portal, session, clock: clock2, tmdb = null, 
     const added = [];
     const seen = /* @__PURE__ */ new Set();
     const pool = [];
+    const exactTitleKeys = new Set(forms.map((f) => seriesKey(f)).filter(Boolean));
     let lastError = null;
     let ensuring = null;
     async function portalItems(q) {
@@ -9381,6 +9382,14 @@ function makeSearch({ kino: kino2, portal, session, clock: clock2, tmdb = null, 
             seen.add(item.c);
             pool.push(item);
           }
+          // Stop querying title variants after the portal returns an exact title.
+          const exactMatch = part.some((item) => {
+            const isTvQuery = ctx.type === "tv" || ctx.type === "anime";
+            if (isTvQuery !== isSeries(item.p ?? "movie")) return false;
+            if (isTvQuery && ctx.season > 0 && seasonFromName(item.t) !== ctx.season) return false;
+            return [item.t, item.a ?? ""].some((title2) => exactTitleKeys.has(seriesKey(withoutSeason(title2))));
+          });
+          if (exactMatch) break;
         }
       }
     }

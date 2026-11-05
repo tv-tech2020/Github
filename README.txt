@@ -1,4 +1,4 @@
-Xuper Nuvio 2.1.5 - compatibilidad Hermes y resolución SLB actualizada
+Xuper Nuvio 2.1.7 - compatibilidad Hermes y resolución SLB actualizada
 
 Basado en el archivo xuper.js del repositorio oficial nuvio-official-plugins.
 Incluye una sola fuente (Xuper) y registra etapas:
@@ -14,4 +14,6 @@ No incorpora credenciales ni tokens compartidos. La disponibilidad de streams de
 Instalación: importar este ZIP como repositorio/plugin en Nuvio TV.
 Prueba sugerida: película TMDB 603. Luego revisar Diagnósticos/logs.
 
-Compatibilidad con Nuvio TV 2.1.6: el limitador de llamadas tolera los entornos Hermes donde kino.sleep falla porque no existe setTimeout global. Las llamadas siguen serializadas.
+Compatibilidad con Nuvio TV 2.1.7: el limitador de llamadas tolera los entornos Hermes donde kino.sleep falla porque no existe setTimeout global. Las llamadas siguen serializadas.
+
+La búsqueda deja de consultar variantes cuando encuentra el título exacto y la temporada solicitada; si no hay coincidencia exacta, conserva las búsquedas de respaldo.
