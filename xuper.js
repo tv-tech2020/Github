@@ -6904,7 +6904,6 @@ function makeCrypto(kino2, { onDecode = null } = {}) {
         if (typeof b64 !== "string" || b64 === "") throw new Error("empty");
         return toHex(b64);
       } catch (error) {
-        console.log("[XuperDiag] crypto encrypt detail=" + (error && error.message ? error.message : String(error)));
         throw fail("cifrar");
       }
     },
@@ -7055,18 +7054,10 @@ function lineOf(area, event, fields) {
   return parts.join(" ").slice(0, MAX_LINE_CHARS);
 }
 function trace(kino2, area, event, fields = {}) {
-  try {
-    kino2.log(lineOf(area, event, fields));
-  } catch (_) {
-  }
+  // Diagnostics are disabled in the published plugin build.
 }
 function report(kino2, area, event, fields = {}) {
-  try {
-    const line = lineOf(area, event, fields);
-    if (kino2.log && typeof kino2.log.report === "function") kino2.log.report(line);
-    else kino2.log(line);
-  } catch (_) {
-  }
+  // Diagnostics are disabled in the published plugin build.
 }
 var PERF_AREAS = Object.freeze({ slow: "perf_slow", timeout: "perf_timeout", cold: "perf_cold", store: "perf_store", decode: "perf_decode" });
 var SLOW_CALL_MS = 8e3;
@@ -12647,13 +12638,10 @@ async function __xuperTitle(tmdbId, mediaType) {
 async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
   var type = String(mediaType || "").toLowerCase();
   type = type === "tv" || type === "series" ? "tv" : "movie";
-  console.log("[XuperDiag] 1/4 inicio tmdb=" + tmdbId + " tipo=" + type);
   try {
     var info = await __xuperTitle(tmdbId, type);
-    console.log("[XuperDiag] 2/4 TMDB titulo=" + (info.title || "(vacío)") +
       " original=" + (info.originalTitle || "(vacío)") + " año=" + (info.year || "?"));
     if (!info.title) {
-      console.log("[XuperDiag] ERROR_TMDB: no se pudo obtener el título desde TMDB");
       return [];
     }
 
@@ -12668,17 +12656,14 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
       if (episode != null) query.episode = Number(episode);
     }
 
-    console.log("[XuperDiag] 3/4 consultando __tv.search");
     var found = await globalThis.__tv.search(query);
     var results = Array.isArray(found) ? found :
       (found && Array.isArray(found.items) ? found.items :
       (found && Array.isArray(found.results) ? found.results :
       (found && Array.isArray(found.data) ? found.data : [])));
-    console.log("[XuperDiag] búsqueda formato=" +
       (Array.isArray(found) ? "array" : (found && typeof found === "object" ? Object.keys(found).join(",") : typeof found)) +
       " resultados=" + results.length);
     if (!results.length) {
-      console.log("[XuperDiag] ERROR_BUSQUEDA: Xuper no devolvió elementos");
       return [];
     }
 
@@ -12705,16 +12690,13 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
       return entry.item;
     });
 
-    console.log("[XuperDiag] candidatos compatibles=" + candidates.length);
     if (!candidates.length) {
-      console.log("[XuperDiag] ERROR_COINCIDENCIA: hay resultados, pero ninguno coincide por título/año o tiene ref");
       return [];
     }
 
     var output = [];
     for (var i = 0; i < candidates.length; i++) {
       try {
-        console.log("[XuperDiag] 4/4 resolviendo candidato " + (i + 1) + ": " + (candidates[i].title || candidates[i].name || "?"));
         var resolved = await globalThis.__tv.resolve(candidates[i].ref);
         var copies = [];
         if (Array.isArray(resolved)) copies = resolved;
@@ -12735,9 +12717,7 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
           });
           added++;
         }
-        console.log("[XuperDiag] resolución candidato " + (i + 1) + " streams=" + added);
       } catch (error) {
-        console.log("[XuperDiag] ERROR_RESOLUCION: " + (error && error.message ? error.message : error));
       }
     }
 
@@ -12748,10 +12728,8 @@ async function __xuperGetStreams(tmdbId, mediaType, season, episode) {
       seen[key] = true;
       return true;
     });
-    console.log("[XuperDiag] FIN streams=" + unique.length);
     return unique;
   } catch (error) {
-    console.log("[XuperDiag] ERROR_GENERAL: " + (error && error.message ? error.message : error));
     return [];
   }
 }
