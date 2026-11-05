@@ -6744,7 +6744,20 @@ var kino = {
       throw new Error("unsupported hash " + algorithm);
     },
     randomBytes: function (count) {
-      return CryptoJS.lib.WordArray.random(Number(count) || 0).toString();
+      var size = Math.max(0, Math.floor(Number(count) || 0));
+      try {
+        return CryptoJS.lib.WordArray.random(size).toString();
+      } catch (_) {
+        // Hermes builds may not expose WebCrypto or Node's crypto module. These
+        // bytes are only used for device fingerprints and choosing a seed; they
+        // are not used as authentication tokens or encryption keys.
+        var hex = "";
+        for (var i = 0; i < size; i++) {
+          var byte = Math.floor(Math.random() * 256).toString(16);
+          hex += byte.length === 1 ? "0" + byte : byte;
+        }
+        return hex;
+      }
     },
     encrypt: function (algorithm, options) {
       options = options || {};
