@@ -1,14 +1,17 @@
 {
   "name": "Xuper Nuvio",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "scrapers": [
     {
       "id": "xuper",
       "name": "Xuper",
-      "description": "Proveedor experimental de Xuper con ajustes de cuenta",
-      "version": "1.1.0",
+      "description": "Activación de dispositivo portada desde cliente Samsung; resolución VOD en desarrollo",
+      "version": "1.3.0",
       "author": "tv-tech2020",
-      "supportedTypes": ["movie", "tv"],
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
       "filename": "providers/xuper.js",
       "enabled": true,
       "hasSettings": true
